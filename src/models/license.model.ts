@@ -2,7 +2,8 @@ import mongoose, { Schema, Document } from 'mongoose';
 import { LicenseData } from '../types/license.types';
 
 export interface LicenseDocument extends LicenseData, Document {
-  imageBase64?: string;
+  imageUrl: string | null;
+  imagekitFileId: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -18,7 +19,8 @@ const LicenseSchema = new Schema<LicenseDocument>(
     courseTitle: { type: String, default: null },
     creditHours: { type: Number, default: null },
     rawText: { type: String, required: true },
-    imageBase64: { type: String, select: false }, // excluded from default queries
+    imageUrl: { type: String, default: null },
+    imagekitFileId: { type: String, default: null },
   },
   { timestamps: true },
 );

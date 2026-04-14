@@ -2,7 +2,7 @@ import { LicenseModel, LicenseDocument } from '../models/license.model';
 import { LicenseData } from '../types/license.types';
 
 export class LicenseRepository {
-  async save(data: LicenseData & { imageBase64?: string }): Promise<LicenseDocument> {
+  async save(data: LicenseData & { imageUrl?: string; imagekitFileId?: string }): Promise<LicenseDocument> {
     const license = new LicenseModel(data);
     return license.save();
   }
