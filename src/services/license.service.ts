@@ -36,7 +36,8 @@ export class LicenseService {
   async listLicenses(
     limit: number,
     skip: number,
+    filters: import('../types/license.types').LicenseFilters = {},
   ): Promise<{ records: LicenseDocument[]; total: number }> {
-    return this.licenseRepository.findAll(limit, skip);
+    return this.licenseRepository.findAll(limit, skip, filters);
   }
 }

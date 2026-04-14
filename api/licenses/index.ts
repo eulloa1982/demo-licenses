@@ -1,7 +1,13 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { connectDatabase } from '../../src/config/database';
 import { LicenseService } from '../../src/services/license.service';
+import { LicenseFilters } from '../../src/types/license.types';
 import { handlePreflight, setCorsHeaders } from '../../src/utils/cors';
+
+function getString(value: unknown): string | undefined {
+  const s = String(value ?? '').trim();
+  return s.length > 0 ? s : undefined;
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   if (handlePreflight(req, res)) return;
@@ -15,10 +21,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
   const limit = Math.min(parseInt(String(req.query.limit ?? '20'), 10), 100);
   const skip = Math.max(parseInt(String(req.query.skip ?? '0'), 10), 0);
 
+  const filters: LicenseFilters = {
+    holderName: getString(req.query.holderName),
+    licenseNumber: getString(req.query.licenseNumber),
+    licenseType: getString(req.query.licenseType),
+    expirationDate: getString(req.query.expirationDate),
+    rawText: getString(req.query.rawText),
+  };
+
   try {
     await connectDatabase();
     const service = new LicenseService();
-    const { records, total } = await service.listLicenses(limit, skip);
+    const { records, total } = await service.listLicenses(limit, skip, filters);
 
     res.status(200).json({ success: true, data: records, total });
   } catch (error) {

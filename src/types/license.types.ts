@@ -15,3 +15,11 @@ export interface ScanLicenseRequest {
   filename?: string;
   mimeType?: string;
 }
+
+export interface LicenseFilters {
+  holderName?: string;    // case-insensitive partial match
+  licenseNumber?: string; // case-insensitive partial match
+  licenseType?: string;   // case-insensitive partial match
+  expirationDate?: string; // exact match (MM/DD/YYYY)
+  rawText?: string;       // case-insensitive partial match
+}

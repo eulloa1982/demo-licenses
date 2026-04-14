@@ -1,5 +1,27 @@
 import { LicenseModel, LicenseDocument } from '../models/license.model';
-import { LicenseData } from '../types/license.types';
+import { LicenseData, LicenseFilters } from '../types/license.types';
+
+function buildQuery(filters: LicenseFilters): Record<string, unknown> {
+  const query: Record<string, unknown> = {};
+
+  if (filters.holderName) {
+    query.holderName = { $regex: filters.holderName, $options: 'i' };
+  }
+  if (filters.licenseNumber) {
+    query.licenseNumber = { $regex: filters.licenseNumber, $options: 'i' };
+  }
+  if (filters.licenseType) {
+    query.licenseType = { $regex: filters.licenseType, $options: 'i' };
+  }
+  if (filters.expirationDate) {
+    query.expirationDate = filters.expirationDate;
+  }
+  if (filters.rawText) {
+    query.rawText = { $regex: filters.rawText, $options: 'i' };
+  }
+
+  return query;
+}
 
 export class LicenseRepository {
   async save(data: LicenseData & { imageUrl?: string; imagekitFileId?: string }): Promise<LicenseDocument> {
@@ -10,15 +32,19 @@ export class LicenseRepository {
   async findAll(
     limit: number,
     skip: number,
+    filters: LicenseFilters = {},
   ): Promise<{ records: LicenseDocument[]; total: number }> {
+    const query = buildQuery(filters);
+
     const [records, total] = await Promise.all([
-      LicenseModel.find()
+      LicenseModel.find(query)
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
         .lean<LicenseDocument[]>(),
-      LicenseModel.countDocuments(),
+      LicenseModel.countDocuments(query),
     ]);
+
     return { records, total };
   }
 
