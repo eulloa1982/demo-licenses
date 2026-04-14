@@ -1,21 +1,7 @@
-import ImageKit from 'imagekit';
+import axios from 'axios';
+import FormData from 'form-data';
 
-let client: ImageKit | null = null;
-
-function getClient(): ImageKit {
-  if (client) return client;
-
-  const publicKey = process.env.IMAGEKIT_PUBLIC_KEY;
-  const privateKey = process.env.IMAGEKIT_PRIVATE_KEY;
-  const urlEndpoint = process.env.IMAGEKIT_URL_ENDPOINT;
-
-  if (!publicKey || !privateKey || !urlEndpoint) {
-    throw new Error('ImageKit environment variables are not set (IMAGEKIT_PUBLIC_KEY, IMAGEKIT_PRIVATE_KEY, IMAGEKIT_URL_ENDPOINT)');
-  }
-
-  client = new ImageKit({ publicKey, privateKey, urlEndpoint });
-  return client;
-}
+const IMAGEKIT_UPLOAD_URL = 'https://upload.imagekit.io/api/v1/files/upload';
 
 export interface UploadResult {
   url: string;
@@ -27,15 +13,33 @@ export async function uploadLicenseImage(
   mimeType: string,
   filename: string,
 ): Promise<UploadResult> {
-  const dataUri = `data:${mimeType};base64,${base64}`;
+  const privateKey = process.env.IMAGEKIT_PRIVATE_KEY;
+  if (!privateKey) throw new Error('IMAGEKIT_PRIVATE_KEY environment variable is not set');
 
-  const result = await getClient().upload({
-    file: dataUri,
-    fileName: filename,
-    folder: '/licenses',
-    useUniqueFileName: true,
-    tags: ['license', 'health'],
+  const form = new FormData();
+  form.append('file', `data:${mimeType};base64,${base64}`);
+  form.append('fileName', filename);
+  form.append('folder', '/licenses');
+  form.append('useUniqueFileName', 'true');
+  form.append('tags', 'license,health');
+
+  // ImageKit Upload API uses HTTP Basic Auth: privateKey as username, empty password
+  const credentials = Buffer.from(`${privateKey}:`).toString('base64');
+
+  const response = await axios.post<{ url: string; fileId: string }>(
+    IMAGEKIT_UPLOAD_URL,
+    form,
+    {
+      headers: {
+        ...form.getHeaders(),
+        Authorization: `Basic ${credentials}`,
+      },
+      timeout: 30_000,
+    },
+  ).catch(err => {
+    const detail = err.response?.data ? JSON.stringify(err.response.data) : err.message;
+    throw new Error(`ImageKit upload failed (${err.response?.status ?? 'network'}): ${detail}`);
   });
 
-  return { url: result.url, fileId: result.fileId };
+  return { url: response.data.url, fileId: response.data.fileId };
 }
