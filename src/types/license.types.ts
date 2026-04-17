@@ -23,3 +23,23 @@ export interface LicenseFilters {
   expirationDate?: string; // exact match (MM/DD/YYYY)
   rawText?: string;       // case-insensitive partial match
 }
+
+export interface PreviewResult {
+  parsedData: LicenseData;
+  imageUrl: string;
+  imagekitFileId: string;
+}
+
+export interface SaveLicenseRequest {
+  holderName: string | null;
+  licenseNumber: string | null;
+  licenseType: string | null;
+  issuingState: string | null;
+  issueDate: string | null;
+  expirationDate: string | null;
+  courseTitle: string | null;
+  creditHours: number | null;
+  rawText: string;
+  imageUrl: string;
+  imagekitFileId: string;
+}
