@@ -51,4 +51,16 @@ export class LicenseRepository {
   async findById(id: string): Promise<LicenseDocument | null> {
     return LicenseModel.findById(id).lean<LicenseDocument>();
   }
+
+  async update(
+    id: string,
+    data: Partial<LicenseData & { imageUrl?: string; imagekitFileId?: string }>,
+  ): Promise<LicenseDocument | null> {
+    return LicenseModel.findByIdAndUpdate(id, data, { new: true }).lean<LicenseDocument>();
+  }
+
+  async delete(id: string): Promise<boolean> {
+    const result = await LicenseModel.findByIdAndDelete(id);
+    return result !== null;
+  }
 }

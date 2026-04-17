@@ -75,4 +75,19 @@ export class LicenseService {
   ): Promise<{ records: LicenseDocument[]; total: number }> {
     return this.licenseRepository.findAll(limit, skip, filters);
   }
+
+  async getLicenseById(id: string): Promise<LicenseDocument | null> {
+    return this.licenseRepository.findById(id);
+  }
+
+  async updateLicense(
+    id: string,
+    data: Partial<SaveLicenseRequest>,
+  ): Promise<LicenseDocument | null> {
+    return this.licenseRepository.update(id, data);
+  }
+
+  async deleteLicense(id: string): Promise<boolean> {
+    return this.licenseRepository.delete(id);
+  }
 }
